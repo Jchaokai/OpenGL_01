@@ -84,6 +84,9 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(840, 510, "Hello World", NULL, NULL);
@@ -95,7 +98,7 @@ int main(void)
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
-
+	glfwSwapInterval(1);
 
 	if (glewInit() != GLEW_OK) {
 		std::cout << "error" << std::endl;
@@ -107,8 +110,22 @@ int main(void)
 	float vertices[] = {
 		-0.5f, -0.5f,
 		0.5f, -0.5f,
-		0.0f,  0.5f,
+		0.5f,  0.5f,
+		-0.5f,  0.5f,
 	};
+
+	unsigned int indices[] = {
+		0,1,2,
+		2,3,0,
+	};
+
+	// VAO => VBO + layout
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+
+	// vertex buffer object
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -116,13 +133,32 @@ int main(void)
 
 	//告诉opengl,VBO（缓存）怎么布局（layout)的
 	glEnableVertexAttribArray(0);
+	// 这一行 将 VAO VBO绑定一起
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 
+	// index buffer object
+	unsigned int IBO;
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
 	shaderPorgramSource sources = pardeShader("res/shaders/basic.shader");
 	unsigned int shader = createProgram(sources.VertexSource, sources.FragmentSource);
 	glUseProgram(shader);
+
+	// uniform
+	int gl_uniform_location = glGetUniformLocation(shader, "u_color");
+	if (gl_uniform_location == -1) {
+		std::cout << "glGetUniformLocation() error" << std::endl;
+	}
+	
+	// 解除绑定 vertexBuffer  indexbuffer shader
+	// 
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glUseProgram(0);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -130,10 +166,20 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		
+		glBindVertexArray(VAO);
+		// 是不是没事都要指定
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+		glUseProgram(shader);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		// 渐变
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+		glUniform4f(gl_uniform_location, 0.0f, greenValue, 0.0f, 1.0f);
 
 
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		glBindVertexArray(0);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
