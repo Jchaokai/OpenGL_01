@@ -20,6 +20,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\basic.shader" />
+    <Image Include="images\wall.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="images\container.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="images\awesomeface.png">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>

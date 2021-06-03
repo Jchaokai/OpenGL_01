@@ -3,8 +3,6 @@
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <sstream>
-#include "main.h"
-
 
 struct shaderProgramSource{
 	std::string vertexSource;
@@ -38,8 +36,8 @@ static shaderProgramSource parseSource(std::string filepath) {
 			ss[(int)curtype] << line << "\n";
 		}
 	}
-	std::cout << ss[0].str() << std::endl;
-	std::cout << ss[1].str() << std::endl;
+	//std::cout << ss[0].str() << std::endl;
+	//std::cout << ss[1].str() << std::endl;
 	return { ss[0].str(),ss[1].str() };
 }
 
