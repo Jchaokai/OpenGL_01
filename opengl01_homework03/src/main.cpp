@@ -8,6 +8,12 @@ const char* vertexShaderSource = "#version 330 core\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
+const char* vertexShaderSource2 = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+"   gl_Position = vec4(aPos.x, -aPos.y, aPos.z, 1.0);\n"
+"}\0";
 const char* fragmentShader1Source = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
@@ -61,6 +67,11 @@ int main(void)
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader); // check error
+    
+    // vertex shader 2
+    unsigned int vertexShader2 = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader2, 1, &vertexShaderSource2, NULL);
+    glCompileShader(vertexShader2); // check error
 
     // first fragement shader
     unsigned int f_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -80,7 +91,7 @@ int main(void)
 
     // second shader program
     unsigned int shaderprogram2 = glCreateProgram();
-    glAttachShader(shaderprogram2, vertexShader);
+    glAttachShader(shaderprogram2, vertexShader2);
     glAttachShader(shaderprogram2, s_fragmentShader);
     glLinkProgram(shaderprogram2);
 
