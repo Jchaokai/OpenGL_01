@@ -24,6 +24,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opengl01_textures_hw01_02",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opengl01_textures_hw04", "opengl01_textures_hw04\opengl01_textures_hw04.vcxproj", "{5FB55F2E-34E2-40B6-8D3B-9779635BC20C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opengl01_transform", "opengl01_transform\opengl01_transform.vcxproj", "{37E10A72-3BB0-4536-B880-DB6ADA454F78}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -104,6 +106,14 @@ Global
 		{5FB55F2E-34E2-40B6-8D3B-9779635BC20C}.Release|x64.Build.0 = Release|x64
 		{5FB55F2E-34E2-40B6-8D3B-9779635BC20C}.Release|x86.ActiveCfg = Release|Win32
 		{5FB55F2E-34E2-40B6-8D3B-9779635BC20C}.Release|x86.Build.0 = Release|Win32
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Debug|x64.ActiveCfg = Debug|x64
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Debug|x64.Build.0 = Debug|x64
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Debug|x86.ActiveCfg = Debug|Win32
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Debug|x86.Build.0 = Debug|Win32
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Release|x64.ActiveCfg = Release|x64
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Release|x64.Build.0 = Release|x64
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Release|x86.ActiveCfg = Release|Win32
+		{37E10A72-3BB0-4536-B880-DB6ADA454F78}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
