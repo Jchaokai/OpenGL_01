@@ -3,7 +3,9 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 /// <summary>
 /// 错误处理
@@ -27,8 +29,6 @@ static bool glLogCall(const char* function, const char* file, int line) {
 	return true;
 }
 
-
-
 const char* vertexShaderSource = "#version 330 core\n"
 "layout(location = 0) in vec3 aPos;\n"
 "layout(location = 1) in vec3 aColor;\n"
@@ -36,29 +36,27 @@ const char* vertexShaderSource = "#version 330 core\n"
 "\n"
 "out vec3 ourColor;\n"
 "out vec2 TexCoord;\n"
+"uniform mat4 model;\n"
+"uniform mat4 view;\n"
+"uniform mat4 projection;\n"
 "\n"
 "void main()\n"
 "{\n"
-"	gl_Position = vec4(aPos, 1.0);\n"
+"	gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
 "	ourColor = aColor;\n"
 "	TexCoord = aTexCoord;\n"
 "}\n";
 
 const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
-"in vec3 ourColor;\n"
 "in vec2 TexCoord;\n"
-"\n"
-"uniform float mixvalue;\n"
-"\n"
 "uniform sampler2D texture1;\n"
 "uniform sampler2D texture2;\n"
 "void main()\n"
 "{\n"
-"	FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), mixvalue);\n"
+"   FragColor = mix( texture(texture1, TexCoord), texture(texture2, TexCoord), 0.1f);\n"
 "}\n";
-
-
+ 
 int main(void)
 {
 	GLFWwindow* window;
@@ -68,7 +66,7 @@ int main(void)
 		return -1;
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(700, 560, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(800, 600, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -78,29 +76,53 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(3);
+
 	if (glewInit() != GLEW_OK) {
 		std::cout << "error" << std::endl;
 	}
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	//shader program
+	// shaderProgram
 	unsigned int vertexshader = glCreateShader(GL_VERTEX_SHADER);
 	unsigned int fragmentshader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(vertexshader, 1, &vertexShaderSource, nullptr);
 	glShaderSource(fragmentshader, 1, &fragmentShaderSource, nullptr);
-	GLCall(glCompileShader(vertexshader));
-	GLCall(glCompileShader(fragmentshader));
+	glCompileShader(vertexshader);
+	// check shader complie error
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexshader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::FAILED\n" << infoLog << std::endl;
+	}
+	glCompileShader(fragmentshader);
+	// check shader complie error
+	glGetShaderiv(fragmentshader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentshader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::FAILED\n" << infoLog << std::endl;
+	}
+	//link shader
+	unsigned int shaderProgram = glCreateProgram();
+	GLCall(glAttachShader(shaderProgram, vertexshader));
+	GLCall(glAttachShader(shaderProgram, fragmentshader));
+	glLinkProgram(shaderProgram);
 
-
-	unsigned int shaderprogram = glCreateProgram();
-	GLCall(glAttachShader(shaderprogram, vertexshader));
-	GLCall(glAttachShader(shaderprogram, fragmentshader));
-	GLCall(glLinkProgram(shaderprogram));	//check link error
-
+	glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::LINK::FAILED\n" << infoLog << std::endl;
+	}
 	GLCall(glDeleteShader(vertexshader));
 	GLCall(glDeleteShader(fragmentshader));
 
+	
 	float vertices[] = {
 		//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
 			 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
@@ -112,7 +134,6 @@ int main(void)
 		0, 1, 3, // first triangle
 		1, 2, 3
 	};
-
 	unsigned int VAO, VBO, IBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -177,55 +198,62 @@ int main(void)
 	}
 	stbi_image_free(data);
 
-	// get uniform 
-	// 在设置uniform变量前 激活着色器程序 ！！！
-	glUseProgram(shaderprogram);
-	glUniform1i(glGetUniformLocation(shaderprogram, "texture1"), 0);
-	glUniform1i(glGetUniformLocation(shaderprogram, "texture2"), 1);
-	
-	float visiable = 0.1f;
 
+	// 在设置uniform变量前 激活着色器程序 ！！！
+	GLCall(glUseProgram(shaderProgram););
+	GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0));
+	GLCall(glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1));
+
+	//投影不是每次有变化，放在循环外
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f),(float)( 800 / 600), 0.1f, 100.0f);
+	int modelLoc = glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+	float startpos = -2.0f;
+	bool front = true;	//代表物体向远处移动,镜头向后移动
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, true);
-
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		{
-			visiable += 0.0005f; // change this value accordingly (might be too slow or too fast based on system hardware)
-			if (visiable >= 1.0f)
-				visiable = 1.0f;
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		{
-			visiable -= 0.0005f; // change this value accordingly (might be too slow or too fast based on system hardware)
-			if (visiable <= 0.0f)
-				visiable = 0.0f;
-		}
-
 		/* Render here */
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		
-
-		//纹理单元
 		//激活两个纹理单元，默认第一个开启
 		GLCall(glActiveTexture(GL_TEXTURE0));
 		GLCall(glBindTexture(GL_TEXTURE_2D, texture1));
 		GLCall(glActiveTexture(GL_TEXTURE1));
 		GLCall(glBindTexture(GL_TEXTURE_2D, texture2));
 
-		//
-		GLCall(glUniform1f(glGetUniformLocation(shaderprogram, "mixvalue"), visiable));
+
+		GLCall(glUseProgram(shaderProgram));
+
+		//物体移动
+
+		if (startpos < -5.0f) {
+			front = false;
+		}else if (startpos >= -1.0f){
+			front = true;
+		}
 		
-		glUseProgram(shaderprogram);
+		startpos += front ? -0.08f : 0.08f;
+
+		glm::mat4 model;
+		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 view;
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, startpos));
+
+		modelLoc = glGetUniformLocation(shaderProgram, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE,glm::value_ptr(model));
+		modelLoc = glGetUniformLocation(shaderProgram, "view");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+
 
 		GLCall(glBindVertexArray(VAO));
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 
-		
+	
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
