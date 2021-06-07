@@ -249,9 +249,27 @@ int main(void)
 	int modelLoc = glGetUniformLocation(shaderProgram, "projection");
 	GLCall(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(projection)));
 
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	float deltaTime = 0.0f; // 当前帧与上一帧的时间差
+	float lastFrame = 0.0f; // 上一帧的时间
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
+		float cameraSpeed = 2.5f * deltaTime;
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			cameraPos += cameraSpeed * cameraFront;
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			cameraPos -= cameraSpeed * cameraFront;
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
 		/* Render here */
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		//glClear(GL_COLOR_BUFFER_BIT);
@@ -269,23 +287,28 @@ int main(void)
 		GLCall(glUseProgram(shaderProgram));
 
 		glm::mat4 view;
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		modelLoc = glGetUniformLocation(shaderProgram, "view");
-		GLCall(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(view)));
-
+		// 在 z x 平面旋转
+	/*	float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		GLCall(glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view)));*/
+		
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		GLCall(glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view)));
 		
 		GLCall(glBindVertexArray(VAO));
-		for (int i = 1; i < 11; i++) {
+		for (int i = 0; i < 10; i++) {
 
 			glm::mat4 model;
 			//每个立方体通过不同 model martix 变化到世界空间不同的位置
-			model = glm::translate(model, cubePositions[i-1]);
+			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
 			//每个立方体有不同的初始角度
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			//让3的倍数的立方体随着时间旋转
-			if (i ==1 || i %3 ==0)
-				model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+			/*if (i ==1 || i %3 ==0)
+				model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));*/
 
 			modelLoc = glGetUniformLocation(shaderProgram, "model");
 			GLCall(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));

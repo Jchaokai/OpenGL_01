@@ -56,6 +56,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "{\n"
 "   FragColor = mix( texture(texture1, TexCoord), texture(texture2, TexCoord), 0.1f);\n"
 "}\n";
+
  
 int main(void)
 {
