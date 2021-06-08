@@ -198,8 +198,7 @@ int main()
     GLCall(glDeleteShader(fragment2));
 
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+#pragma region vertices
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,
          0.5f, -0.5f, -0.5f,
@@ -243,6 +242,7 @@ int main()
         -0.5f,  0.5f,  0.5f,
         -0.5f,  0.5f, -0.5f,
     };
+#pragma endregion
     // first, configure the cube's VAO (and VBO)
     unsigned int VBO, cubeVAO;
     GLCall(glGenVertexArrays(1, &cubeVAO));

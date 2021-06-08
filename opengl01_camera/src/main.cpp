@@ -245,15 +245,15 @@ int main(void)
 
 
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), (float)(800 / 600), 0.1f, 100.0f);
-	int modelLoc = glGetUniformLocation(shaderProgram, "projection");
-	GLCall(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(projection)));
+	projection = glm::perspective(glm::radians(45.0f), 800 / 600.0f, 0.1f, 100.0f);
+	GLCall(glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection)));
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 	float lastFrame = 0.0f; // 上一帧的时间
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
@@ -310,8 +310,7 @@ int main(void)
 			/*if (i ==1 || i %3 ==0)
 				model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));*/
 
-			modelLoc = glGetUniformLocation(shaderProgram, "model");
-			GLCall(glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)));
+			GLCall(glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model)));
 
 			GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
 		}
